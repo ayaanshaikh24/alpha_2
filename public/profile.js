@@ -42,6 +42,19 @@ const setupUsernameInput = document.getElementById('setup-username');
 const setupBioTextarea = document.getElementById('setup-bio');
 const setupRegisterBtn = document.getElementById('setup-register-btn');
 
+// Compose Box Elements (in profile.html)
+const desktopCreatePostBox = document.getElementById('desktop-create-post');
+const postContentInput = document.getElementById('post-content');
+const createPostBtn = document.getElementById('create-post-btn');
+const charCount = document.getElementById('char-count');
+const postImageInput = document.getElementById('post-image-input');
+const postImageBtn = document.getElementById('post-image-btn');
+const imagePreviewContainer = document.getElementById('image-preview-container');
+const imagePreview = document.getElementById('image-preview');
+const removePreviewBtn = document.getElementById('remove-preview-btn');
+
+let selectedImageBase64 = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   initProfilePage();
 });
@@ -93,6 +106,9 @@ async function initProfilePage() {
   
   // Bind Edit Profile Action Events
   initEditProfileForm();
+
+  // Initialize Compose Box
+  initComposeBox();
 }
 
 function initSetupPanel() {
@@ -400,4 +416,103 @@ function createProfilePostCard(post) {
     </div>
   `;
   return card;
+}
+
+function initComposeBox() {
+  if (profileUserId === activeUserId && activeUserId) {
+    if (desktopCreatePostBox) desktopCreatePostBox.classList.remove('hidden');
+  } else {
+    if (desktopCreatePostBox) desktopCreatePostBox.classList.add('hidden');
+    return;
+  }
+
+  // Setup Event Listeners (only once)
+  if (!postContentInput.dataset.bound) {
+    postContentInput.addEventListener('input', (e) => {
+      const len = e.target.value.length;
+      charCount.textContent = len;
+      createPostBtn.disabled = len === 0 || len > 280;
+      
+      if (len > 260) {
+        charCount.className = 'char-counter danger';
+      } else if (len > 220) {
+        charCount.className = 'char-counter warning';
+      } else {
+        charCount.className = 'char-counter';
+      }
+    });
+
+    createPostBtn.addEventListener('click', handleCreatePost);
+
+    if (postImageBtn && postImageInput) {
+      postImageBtn.addEventListener('click', () => {
+        postImageInput.click();
+      });
+
+      postImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          showToast('Please select a valid image file.', 'error');
+          postImageInput.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          selectedImageBase64 = event.target.result;
+          imagePreview.src = selectedImageBase64;
+          imagePreviewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (removePreviewBtn) {
+      removePreviewBtn.addEventListener('click', () => {
+        selectedImageBase64 = null;
+        imagePreview.src = '';
+        imagePreviewContainer.classList.add('hidden');
+        if (postImageInput) postImageInput.value = '';
+      });
+    }
+
+    postContentInput.dataset.bound = "true";
+  }
+}
+
+async function handleCreatePost() {
+  const content = postContentInput.value.trim();
+  if (!content) return;
+  
+  createPostBtn.disabled = true;
+  
+  try {
+    const post = await fetchAPI('/api/posts', {
+      method: 'POST',
+      body: JSON.stringify({ content, image: selectedImageBase64 })
+    });
+    
+    if (post) {
+      showToast('Post published successfully!', 'success');
+      postContentInput.value = '';
+      charCount.textContent = '0';
+      createPostBtn.disabled = true;
+      
+      // Clear image preview state
+      selectedImageBase64 = null;
+      imagePreview.src = '';
+      imagePreviewContainer.classList.add('hidden');
+      if (postImageInput) postImageInput.value = '';
+      
+      await updateActiveUserUI();
+      // Reload stats and user posts
+      await loadProfileDetails(profileUserId);
+      await loadUserPosts(profileUserId);
+    }
+  } catch (error) {
+    showToast('Failed to publish post.', 'error');
+    createPostBtn.disabled = false;
+  }
 }
