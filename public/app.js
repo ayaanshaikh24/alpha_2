@@ -24,7 +24,17 @@ const charCount = document.getElementById('char-count');
 const postsFeed = document.getElementById('posts-feed');
 const suggestionsList = document.getElementById('suggestions-list');
 const toastElement = document.getElementById('toast');
-const currentUserAvatar = document.querySelector('.current-user-avatar');
+const currentUserAvatar = document.querySelectorAll('.current-user-avatar');
+const mobileHeaderAvatar = document.getElementById('header-avatar');
+const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
+const tabSections = document.querySelectorAll('.tab-section');
+
+// Modal Elements
+const composeModal = document.getElementById('compose-modal');
+const closeModalBtn = document.getElementById('close-modal-btn');
+const modalPostContent = document.getElementById('modal-post-content');
+const modalCreatePostBtn = document.getElementById('modal-create-post-btn');
+const modalCharCount = document.getElementById('modal-char-count');
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,6 +74,44 @@ function setupEventListeners() {
 
   // Delegated events for feed posts (Likes, Comments, Follow, Replies)
   postsFeed.addEventListener('click', handleFeedClick);
+
+  // Bottom Navigation Bar Switcher (Mobile)
+  bottomNavItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const tabId = item.getAttribute('data-tab');
+      if (tabId === 'compose') {
+        openComposeModal();
+      } else {
+        switchTab(tabId);
+      }
+    });
+  });
+
+  // Mobile avatar in header triggers profile tab
+  mobileHeaderAvatar.addEventListener('click', () => {
+    switchTab('profile');
+  });
+
+  // Compose Modal Close Trigger
+  closeModalBtn.addEventListener('click', closeComposeModal);
+
+  // Compose Modal character counter
+  modalPostContent.addEventListener('input', (e) => {
+    const len = e.target.value.length;
+    modalCharCount.textContent = len;
+    modalCreatePostBtn.disabled = len === 0 || len > 280;
+    
+    if (len > 260) {
+      modalCharCount.className = 'char-counter danger';
+    } else if (len > 220) {
+      modalCharCount.className = 'char-counter warning';
+    } else {
+      modalCharCount.className = 'char-counter';
+    }
+  });
+
+  // Compose Modal publish trigger
+  modalCreatePostBtn.addEventListener('click', handleModalCreatePost);
 }
 
 // ==========================================
@@ -124,13 +172,13 @@ async function setActiveUser(userId) {
       statFollowing.textContent = profile.stats.following;
       
       activeProfileCard.classList.remove('hidden');
-      currentUserAvatar.textContent = profile.username[0].toUpperCase();
+      currentUserAvatar.forEach(avatar => avatar.textContent = profile.username[0].toUpperCase());
     }
   } else {
     localStorage.removeItem('pulse_active_user_id');
     userSelector.value = '';
     activeProfileCard.classList.add('hidden');
-    currentUserAvatar.textContent = '?';
+    currentUserAvatar.forEach(avatar => avatar.textContent = '?');
   }
   
   // Re-sync users lists to update following sets and suggestions sidebar
@@ -381,6 +429,7 @@ async function handleRegistration() {
       // Select the newly registered user as the active user
       await loadUsers();
       await setActiveUser(user.id);
+      switchTab('feed');
     }
   } catch (error) {
     showToast(error.message || 'Registration failed.', 'error');
@@ -501,6 +550,7 @@ async function handleFeedClick(e) {
       if (confirm(`Switch view perspective to "${userInfo.textContent.trim()}"?`)) {
         await setActiveUser(userId);
         showToast(`Logged in as ${userInfo.textContent.trim()}`, 'info');
+        switchTab('feed');
       }
     }
   }
@@ -677,4 +727,73 @@ function escapeHTML(str) {
       '"': '&quot;'
     }[tag] || tag)
   );
+}
+
+// ==========================================
+// MOBILE TAB NAVIGATION & MODAL CONTROLLERS
+// ==========================================
+
+function switchTab(tabId) {
+  bottomNavItems.forEach(item => {
+    if (item.getAttribute('data-tab') === tabId) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  tabSections.forEach(section => {
+    if (section.id === `${tabId}-tab`) {
+      section.classList.add('active');
+    } else {
+      section.classList.remove('active');
+    }
+  });
+}
+
+function openComposeModal() {
+  if (!activeUserId) {
+    showToast('Please select/create a profile first to compose a post.', 'error');
+    switchTab('profile');
+    return;
+  }
+  composeModal.classList.remove('hidden');
+  modalPostContent.value = '';
+  modalCharCount.textContent = '0';
+  modalCreatePostBtn.disabled = true;
+  modalPostContent.focus();
+}
+
+function closeComposeModal() {
+  composeModal.classList.add('hidden');
+}
+
+async function handleModalCreatePost() {
+  const content = modalPostContent.value.trim();
+  if (!content) return;
+  
+  modalCreatePostBtn.disabled = true;
+  
+  try {
+    const post = await fetchAPI('/api/posts', {
+      method: 'POST',
+      body: JSON.stringify({ content })
+    });
+    
+    if (post) {
+      showToast('Post published successfully!', 'success');
+      modalPostContent.value = '';
+      closeComposeModal();
+      
+      // Update statistics of active profile card and reload feed
+      if (activeUserId) {
+        await setActiveUser(activeUserId);
+      }
+      await loadPosts();
+      switchTab('feed');
+    }
+  } catch (error) {
+    showToast('Failed to publish post.', 'error');
+    modalCreatePostBtn.disabled = false;
+  }
 }
