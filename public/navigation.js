@@ -187,6 +187,15 @@ function initComposeModal() {
   const modalCreatePostBtn = document.getElementById('modal-create-post-btn');
   const modalCharCount = document.getElementById('modal-char-count');
 
+  // Image Upload elements
+  const modalPostImageInput = document.getElementById('modal-post-image-input');
+  const modalPostImageBtn = document.getElementById('modal-post-image-btn');
+  const modalImagePreviewContainer = document.getElementById('modal-image-preview-container');
+  const modalImagePreview = document.getElementById('modal-image-preview');
+  const modalRemovePreviewBtn = document.getElementById('modal-remove-preview-btn');
+
+  let selectedImageBase64 = null;
+
   if (!composeModal) return;
 
   closeModalBtn.addEventListener('click', () => {
@@ -207,6 +216,40 @@ function initComposeModal() {
     }
   });
 
+  if (modalPostImageBtn && modalPostImageInput) {
+    modalPostImageBtn.addEventListener('click', () => {
+      modalPostImageInput.click();
+    });
+
+    modalPostImageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file.', 'error');
+        modalPostImageInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        selectedImageBase64 = event.target.result;
+        modalImagePreview.src = selectedImageBase64;
+        modalImagePreviewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (modalRemovePreviewBtn) {
+    modalRemovePreviewBtn.addEventListener('click', () => {
+      selectedImageBase64 = null;
+      modalImagePreview.src = '';
+      modalImagePreviewContainer.classList.add('hidden');
+      if (modalPostImageInput) modalPostImageInput.value = '';
+    });
+  }
+
   modalCreatePostBtn.addEventListener('click', async () => {
     const content = modalPostContent.value.trim();
     if (!content) return;
@@ -215,12 +258,17 @@ function initComposeModal() {
     try {
       const post = await fetchAPI('/api/posts', {
         method: 'POST',
-        body: JSON.stringify({ content })
+        body: JSON.stringify({ content, image: selectedImageBase64 })
       });
       
       if (post) {
         showToast('Post published successfully!', 'success');
         modalPostContent.value = '';
+        selectedImageBase64 = null;
+        modalImagePreview.src = '';
+        modalImagePreviewContainer.classList.add('hidden');
+        if (modalPostImageInput) modalPostImageInput.value = '';
+        
         composeModal.classList.add('hidden');
         
         // Refresh page contents depending on page
@@ -258,6 +306,15 @@ export function openComposeModal() {
     document.getElementById('modal-post-content').value = '';
     document.getElementById('modal-char-count').textContent = '0';
     document.getElementById('modal-create-post-btn').disabled = true;
+
+    // Reset image preview state
+    const previewContainer = document.getElementById('modal-image-preview-container');
+    if (previewContainer) previewContainer.classList.add('hidden');
+    const previewImg = document.getElementById('modal-image-preview');
+    if (previewImg) previewImg.src = '';
+    const imgInput = document.getElementById('modal-post-image-input');
+    if (imgInput) imgInput.value = '';
+
     document.getElementById('modal-post-content').focus();
   }
 }

@@ -222,6 +222,7 @@ app.get('/api/posts', asyncHandler(async (req, res) => {
   const formattedPosts = posts.map(post => ({
     id: post.id,
     content: post.content,
+    image: post.image,
     createdAt: post.createdAt,
     user: post.user,
     stats: {
@@ -236,7 +237,7 @@ app.get('/api/posts', asyncHandler(async (req, res) => {
 
 // Create a new post
 app.post('/api/posts', asyncHandler(async (req, res) => {
-  const { content } = req.body;
+  const { content, image } = req.body;
   const userId = req.userId;
 
   if (!userId) {
@@ -250,6 +251,7 @@ app.post('/api/posts', asyncHandler(async (req, res) => {
   const post = await prisma.post.create({
     data: {
       content: content.trim(),
+      image: image || null,
       userId
     },
     include: {

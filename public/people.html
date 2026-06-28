@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pulse - Who to Follow</title>
+  <title>GENZBOOK - Who to Follow</title>
   <!-- Google Fonts for premium typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
       <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
       </svg>
-      <span class="brand-name">Pulse</span>
+      <span class="brand-name">GENZBOOK</span>
     </div>
     <div class="mobile-header-actions">
       <div class="avatar mobile-active-avatar current-user-avatar" id="header-avatar">?</div>
@@ -33,7 +33,7 @@
         <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
-        <span class="brand-name">Pulse</span>
+        <span class="brand-name">GENZBOOK</span>
       </div>
 
       <!-- Navigation Menu -->
@@ -105,8 +105,8 @@
     <!-- RIGHT SIDEBAR -->
     <aside class="sidebar-right">
       <div class="card info-box">
-        <h3>Pulse Network</h3>
-        <p class="helper-text" style="margin-bottom: 0;">This directory lists everyone registered on Pulse. Click any profile to view their detailed posts and stats page, or toggle your follow status directly.</p>
+        <h3>GENZBOOK Network</h3>
+        <p class="helper-text" style="margin-bottom: 0;">This directory lists everyone registered on GENZBOOK. Click any profile to view their detailed posts and stats page, or toggle your follow status directly.</p>
       </div>
     </aside>
 
@@ -160,8 +160,28 @@
         <div class="avatar current-user-avatar">?</div>
         <textarea id="modal-post-content" class="form-control" placeholder="Share something with the world..." rows="4" maxlength="280"></textarea>
       </div>
+      
+      <!-- Modal Image Preview Panel -->
+      <div id="modal-image-preview-container" class="image-preview-container hidden">
+        <img id="modal-image-preview" src="" alt="Selected image preview">
+        <button id="modal-remove-preview-btn" class="remove-preview-btn" title="Remove image">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
       <div class="post-box-footer">
-        <div class="char-counter"><span id="modal-char-count">0</span> / 280</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Hidden File Input for Modal -->
+          <input type="file" id="modal-post-image-input" accept="image/*" class="hidden">
+          <button id="modal-post-image-btn" class="btn btn-outline btn-sm" style="padding: 6px 10px; display: inline-flex; align-items: center;" title="Attach Image">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px; stroke-width: 2px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </button>
+          <div class="char-counter"><span id="modal-char-count">0</span> / 280</div>
+        </div>
         <button id="modal-create-post-btn" class="btn btn-primary" disabled>Publish Post</button>
       </div>
     </div>

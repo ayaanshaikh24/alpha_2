@@ -218,6 +218,7 @@ function createProfilePostCard(post) {
     </div>
     
     <div class="post-content">${escapeHTML(post.content)}</div>
+    ${post.image ? `<img src="${post.image}" class="post-image" alt="Post Image">` : ''}
     
     <div class="post-actions" style="border-bottom: none; padding-bottom: 0;">
       <button class="action-btn like-btn ${hasLiked ? 'liked' : ''}" data-post-id="${post.id}">

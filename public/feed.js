@@ -12,6 +12,15 @@ const createPostBtn = document.getElementById('create-post-btn');
 const charCount = document.getElementById('char-count');
 const desktopCreatePostBox = document.getElementById('desktop-create-post');
 
+// Image Upload selectors
+const postImageInput = document.getElementById('post-image-input');
+const postImageBtn = document.getElementById('post-image-btn');
+const imagePreviewContainer = document.getElementById('image-preview-container');
+const imagePreview = document.getElementById('image-preview');
+const removePreviewBtn = document.getElementById('remove-preview-btn');
+
+let selectedImageBase64 = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   initFeed();
 });
@@ -48,6 +57,40 @@ async function initFeed() {
     });
 
     createPostBtn.addEventListener('click', handleCreatePost);
+  }
+
+  if (postImageBtn && postImageInput) {
+    postImageBtn.addEventListener('click', () => {
+      postImageInput.click();
+    });
+
+    postImageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file.', 'error');
+        postImageInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        selectedImageBase64 = event.target.result;
+        imagePreview.src = selectedImageBase64;
+        imagePreviewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (removePreviewBtn) {
+    removePreviewBtn.addEventListener('click', () => {
+      selectedImageBase64 = null;
+      imagePreview.src = '';
+      imagePreviewContainer.classList.add('hidden');
+      if (postImageInput) postImageInput.value = '';
+    });
   }
 
   if (postsFeed) {
@@ -166,6 +209,7 @@ function createPostCard(post) {
     </div>
     
     <div class="post-content">${escapeHTML(post.content)}</div>
+    ${post.image ? `<img src="${post.image}" class="post-image" alt="Post Image">` : ''}
     
     <div class="post-actions">
       <button class="action-btn like-btn ${hasLiked ? 'liked' : ''}" data-post-id="${post.id}">
@@ -216,7 +260,7 @@ async function handleCreatePost() {
   try {
     const post = await fetchAPI('/api/posts', {
       method: 'POST',
-      body: JSON.stringify({ content })
+      body: JSON.stringify({ content, image: selectedImageBase64 })
     });
     
     if (post) {
@@ -224,6 +268,12 @@ async function handleCreatePost() {
       postContentInput.value = '';
       charCount.textContent = '0';
       createPostBtn.disabled = true;
+      
+      // Clear image preview state
+      selectedImageBase64 = null;
+      imagePreview.src = '';
+      imagePreviewContainer.classList.add('hidden');
+      if (postImageInput) postImageInput.value = '';
       
       await updateActiveUserUI();
       await loadPosts();

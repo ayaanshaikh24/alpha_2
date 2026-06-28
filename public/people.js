@@ -44,7 +44,7 @@ async function loadPeopleList() {
       if (directoryUsers.length === 0) {
         suggestionsListFull.innerHTML = `
           <div class="no-suggestions" style="padding: 24px 0;">
-            No other users found on Pulse yet. Go to the "Profile" page and create another account to start testing!
+            No other users found on GENZBOOK yet. Go to the "Profile" page and create another account to start testing!
           </div>
         `;
         return;
