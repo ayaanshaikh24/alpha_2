@@ -95,17 +95,22 @@
         <h3>Setup Your Profile</h3>
         <p class="helper-text">Create your GENZBOOK profile to start sharing and following other users.</p>
         
-        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
-          <!-- Big PFP upload circle -->
-          <div class="avatar-upload-trigger" id="setup-pfp-trigger" style="width: 80px; height: 80px; border-radius: var(--radius-full); background: rgba(124, 77, 255, 0.1); border: 2px dashed var(--accent-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;" title="Upload Profile Picture">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 32px; height: 32px; color: var(--accent-primary);">
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;">
+          <!-- Premium PFP upload circle -->
+          <div class="pfp-upload-container" id="setup-pfp-trigger" title="Upload Profile Picture">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <img id="setup-pfp-preview" src="" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; display:none;">
+            <img id="setup-pfp-preview" src="" style="display: none;">
+            <div class="pfp-overlay" id="setup-pfp-overlay" style="display: none;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 22px; height: 22px; color: #fff;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </div>
           </div>
           <input type="file" id="setup-pfp-input" accept="image/*" class="hidden">
-          <span class="helper-text" style="margin-top: 8px;">Upload Profile Picture (Optional)</span>
+          <span class="helper-text" style="margin-top: 10px; font-weight: 600; color: var(--text-secondary);">Upload Profile Picture</span>
         </div>
 
         <div class="form-group">
@@ -142,12 +147,19 @@
         <div id="profile-edit-mode" class="hidden" style="margin-top: 4px;">
           <h3 style="margin-bottom: 16px; font-size: 1.1rem; color: var(--accent-primary);">Edit Profile</h3>
           
-          <div style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
-            <div class="avatar-upload-trigger" id="edit-pfp-trigger" style="width: 64px; height: 64px; border-radius: var(--radius-full); background: rgba(124, 77, 255, 0.1); border: 2px dashed var(--accent-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;" title="Change Profile Picture">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 24px; height: 24px; color: var(--accent-primary);">
+          <div style="display: flex; gap: 16px; margin-bottom: 20px; align-items: center;">
+            <!-- Premium PFP edit circle -->
+            <div class="pfp-upload-container" id="edit-pfp-trigger" title="Change Profile Picture" style="width: 76px; height: 76px;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <img id="edit-pfp-preview" src="" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; display:none;">
+              <img id="edit-pfp-preview" src="" style="display: none;">
+              <div class="pfp-overlay" id="edit-pfp-overlay" style="display: none;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 20px; height: 20px; color: #fff;">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </div>
             </div>
             <input type="file" id="edit-pfp-input" accept="image/*" class="hidden">
             <div>

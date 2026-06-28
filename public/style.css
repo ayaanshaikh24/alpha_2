@@ -1154,4 +1154,77 @@ p.helper-text {
   height: 16px;
 }
 
+/* ==========================================
+   PREMIUM AVATAR UPLOADER CIRCLE
+   ========================================== */
+.pfp-upload-container {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius-full);
+  background: rgba(124, 77, 255, 0.05);
+  border: 2px dashed rgba(124, 77, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  box-shadow: 0 0 15px rgba(124, 77, 255, 0.1);
+}
+
+.pfp-upload-container:hover {
+  border-color: var(--accent-primary);
+  background: rgba(124, 77, 255, 0.12);
+  box-shadow: 0 0 25px rgba(124, 77, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.pfp-upload-container svg {
+  width: 28px;
+  height: 28px;
+  color: var(--accent-primary);
+  transition: transform var(--transition-normal);
+}
+
+.pfp-upload-container:hover svg {
+  transform: scale(1.1);
+}
+
+.pfp-upload-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  transition: all var(--transition-fast);
+}
+
+.pfp-upload-container .pfp-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 12, 22, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  color: #fff;
+  z-index: 10;
+}
+
+.pfp-upload-container:hover .pfp-overlay {
+  opacity: 1;
+}
+
+.pfp-upload-container:hover img {
+  filter: brightness(0.4);
+}
+
+
 

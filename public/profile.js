@@ -117,6 +117,9 @@ function initSetupPanel() {
       selectedPfpBase64 = event.target.result;
       setupPfpPreview.src = selectedPfpBase64;
       setupPfpPreview.style.display = 'block';
+      
+      const overlay = document.getElementById('setup-pfp-overlay');
+      if (overlay) overlay.style.display = 'flex';
     };
     reader.readAsDataURL(file);
   });
@@ -233,10 +236,14 @@ function toggleEditMode(user) {
     editPfpPreview.src = user.pfp;
     editPfpPreview.style.display = 'block';
     editSelectedPfpBase64 = user.pfp;
+    const overlay = document.getElementById('edit-pfp-overlay');
+    if (overlay) overlay.style.display = 'flex';
   } else {
     editPfpPreview.src = '';
     editPfpPreview.style.display = 'none';
     editSelectedPfpBase64 = null;
+    const overlay = document.getElementById('edit-pfp-overlay');
+    if (overlay) overlay.style.display = 'none';
   }
 }
 
@@ -264,6 +271,9 @@ function initEditProfileForm() {
         editSelectedPfpBase64 = event.target.result;
         editPfpPreview.src = editSelectedPfpBase64;
         editPfpPreview.style.display = 'block';
+        
+        const overlay = document.getElementById('edit-pfp-overlay');
+        if (overlay) overlay.style.display = 'flex';
       };
       reader.readAsDataURL(file);
     });
