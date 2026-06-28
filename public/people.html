@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pulse - Home Feed</title>
+  <title>Pulse - Who to Follow</title>
   <!-- Google Fonts for premium typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,13 +38,13 @@
 
       <!-- Navigation Menu -->
       <nav class="sidebar-nav">
-        <a href="index.html" class="nav-link active">
+        <a href="index.html" class="nav-link">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
           <span>Home Feed</span>
         </a>
-        <a href="people.html" class="nav-link">
+        <a href="people.html" class="nav-link active">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
           </svg>
@@ -84,41 +84,29 @@
       </div>
     </aside>
 
-    <!-- MAIN FEED -->
+    <!-- MAIN CENTER CONTENT -->
     <main class="feed-container">
       <header class="feed-header">
-        <h1>Home Feed</h1>
+        <h1>Find People</h1>
       </header>
 
-      <!-- Post Creation Box -->
-      <div id="desktop-create-post" class="card create-post-card">
-        <div class="post-box-header">
-          <div class="avatar current-user-avatar">?</div>
-          <textarea id="post-content" placeholder="Share something with the world..." rows="3" maxlength="280"></textarea>
-        </div>
-        <div class="post-box-footer">
-          <div class="char-counter"><span id="char-count">0</span> / 280</div>
-          <button id="create-post-btn" class="btn btn-primary" disabled>Publish Post</button>
-        </div>
-      </div>
-
-      <!-- Posts List -->
-      <div id="posts-feed" class="feed-list">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Loading posts...</p>
+      <div class="card who-to-follow-full">
+        <h3>User Directory</h3>
+        <p class="helper-text">Discover active accounts, follow and interact with them to populate your Home Feed.</p>
+        <div id="suggestions-list-full" class="suggestions-list-full">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading users list...</p>
+          </div>
         </div>
       </div>
     </main>
 
-    <!-- RIGHT SIDEBAR - MINI WHO TO FOLLOW -->
+    <!-- RIGHT SIDEBAR -->
     <aside class="sidebar-right">
-      <div class="card who-to-follow">
-        <h3>Who to follow</h3>
-        <p class="helper-text">Follow users to see their counts grow in real-time!</p>
-        <div id="suggestions-list" class="suggestions-list">
-          <div class="no-suggestions">No other users found. Create another profile to test following.</div>
-        </div>
+      <div class="card info-box">
+        <h3>Pulse Network</h3>
+        <p class="helper-text" style="margin-bottom: 0;">This directory lists everyone registered on Pulse. Click any profile to view their detailed posts and stats page, or toggle your follow status directly.</p>
       </div>
     </aside>
 
@@ -126,7 +114,7 @@
 
   <!-- MOBILE BOTTOM NAVIGATION -->
   <nav class="bottom-nav">
-    <button class="nav-item active" data-tab="feed">
+    <button class="nav-item" data-tab="feed">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
       </svg>
@@ -142,7 +130,7 @@
       <span>Compose</span>
     </button>
     
-    <button class="nav-item" data-tab="people">
+    <button class="nav-item active" data-tab="people">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
       </svg>
@@ -184,6 +172,6 @@
 
   <!-- Scripts -->
   <script type="module" src="navigation.js"></script>
-  <script type="module" src="feed.js"></script>
+  <script type="module" src="people.js"></script>
 </body>
 </html>

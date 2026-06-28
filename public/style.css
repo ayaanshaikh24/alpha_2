@@ -915,25 +915,8 @@ p.helper-text {
     display: none !important;
   }
 
-  /* Tab switching visibility logic */
-  .tab-section {
+  .sidebar-left, .sidebar-right {
     display: none !important;
-  }
-
-  .tab-section.active {
-    display: block !important;
-    animation: tabFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  @keyframes tabFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   /* Mobile Header */
@@ -1043,3 +1026,62 @@ p.helper-text {
     box-shadow: 0 6px 18px rgba(124, 77, 255, 0.6);
   }
 }
+
+/* ==========================================
+   DESKTOP SIDEBAR NAVIGATION RULES
+   ========================================== */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-link.active {
+  color: var(--accent-primary);
+  background: rgba(124, 77, 255, 0.08);
+  border-left-color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.nav-link svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2px;
+}
+
+/* Active badge for profile card */
+.active-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-success);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
