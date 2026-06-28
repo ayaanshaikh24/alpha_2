@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse - Mini Social Media Platform</title>
+  <!-- Google Fonts for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar-left">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span class="brand-name">Pulse</span>
+      </div>
+
+      <!-- Authentication Simulation Panel -->
+      <div class="card auth-panel">
+        <h3>User Session Simulator</h3>
+        <p class="helper-text">Select an active user profile or register a new one to simulate logged-in actions.</p>
+        
+        <div class="form-group">
+          <label for="user-selector">Active Profile</label>
+          <select id="user-selector" class="form-control">
+            <option value="">-- Select Profile (Log In) --</option>
+          </select>
+        </div>
+
+        <div class="divider">or</div>
+
+        <div class="register-form">
+          <input type="text" id="new-username" placeholder="New username..." class="form-control" maxlength="25">
+          <textarea id="new-bio" placeholder="Optional bio..." class="form-control" rows="2" maxlength="150"></textarea>
+          <button id="register-btn" class="btn btn-primary btn-block">Create Profile</button>
+        </div>
+      </div>
+
+      <!-- Active User Profile Details Panel -->
+      <div id="active-profile-card" class="card profile-card hidden">
+        <div class="profile-header">
+          <div class="avatar" id="profile-avatar">U</div>
+          <div class="profile-meta">
+            <h2 id="profile-username" class="username">Username</h2>
+            <p id="profile-bio" class="bio">User bio goes here...</p>
+          </div>
+        </div>
+        
+        <div class="profile-stats">
+          <div class="stat-item">
+            <span class="stat-value" id="stat-posts">0</span>
+            <span class="stat-label">Posts</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="stat-followers">0</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="stat-following">0</span>
+            <span class="stat-label">Following</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN FEED -->
+    <main class="feed-container">
+      <header class="feed-header">
+        <h1>Home Feed</h1>
+      </header>
+
+      <!-- Post Creation Box -->
+      <div class="card create-post-card">
+        <div class="post-box-header">
+          <div class="avatar current-user-avatar">?</div>
+          <textarea id="post-content" placeholder="Share something with the world..." rows="3" maxlength="280"></textarea>
+        </div>
+        <div class="post-box-footer">
+          <div class="char-counter"><span id="char-count">0</span> / 280</div>
+          <button id="create-post-btn" class="btn btn-primary" disabled>Publish Post</button>
+        </div>
+      </div>
+
+      <!-- Posts List -->
+      <div id="posts-feed" class="feed-list">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading posts...</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="sidebar-right">
+      <div class="card who-to-follow">
+        <h3>Who to follow</h3>
+        <p class="helper-text">Follow users to see their counts grow in real-time!</p>
+        <div id="suggestions-list" class="suggestions-list">
+          <div class="no-suggestions">No other users found. Create another profile to test following.</div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast hidden"></div>
+</body>
+</html>
