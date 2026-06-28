@@ -126,7 +126,7 @@ async function loadFeedSuggestions() {
         item.className = 'suggestion-item';
         item.innerHTML = `
           <div class="suggestion-user-info" data-user-id="${user.id}">
-            <div class="avatar">${user.username[0].toUpperCase()}</div>
+            <div class="avatar" style="overflow: hidden;">${user.pfp ? `<img src="${user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">` : user.username[0].toUpperCase()}</div>
             <div class="suggestion-meta">
               <span class="suggestion-username">${user.username}</span>
               <span class="suggestion-bio">${user.bio || 'No bio yet.'}</span>
@@ -194,7 +194,7 @@ function createPostCard(post) {
   card.innerHTML = `
     <div class="post-header">
       <div class="post-user-info" data-user-id="${post.user.id}">
-        <div class="avatar">${post.user.username[0].toUpperCase()}</div>
+        <div class="avatar" style="overflow: hidden;">${post.user.pfp ? `<img src="${post.user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">` : post.user.username[0].toUpperCase()}</div>
         <div>
           <span class="post-username">${post.user.username}</span>
           <span class="post-time">${formatDate(post.createdAt)}</span>
@@ -454,7 +454,7 @@ function renderCommentsTree(comments, container, postId) {
     
     node.innerHTML = `
       <div class="comment-body">
-        <div class="avatar">${comment.user.username[0].toUpperCase()}</div>
+        <div class="avatar" style="overflow: hidden;">${comment.user.pfp ? `<img src="${comment.user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">` : comment.user.username[0].toUpperCase()}</div>
         <div class="comment-main">
           <div class="comment-meta">
             <span class="comment-author" data-user-id="${comment.user.id}">${comment.user.username}</span>

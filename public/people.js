@@ -58,8 +58,8 @@ async function loadPeopleList() {
         
         item.innerHTML = `
           <div class="suggestion-user-info" data-user-id="${user.id}">
-            <div class="avatar" style="width: 42px; height: 42px; font-size: 1.2rem;">
-              ${user.username[0].toUpperCase()}
+            <div class="avatar" style="width: 42px; height: 42px; font-size: 1.2rem; overflow: hidden;">
+              ${user.pfp ? `<img src="${user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">` : user.username[0].toUpperCase()}
             </div>
             <div class="suggestion-meta" style="margin-left: 12px;">
               <span class="suggestion-username" style="font-size: 0.95rem; font-weight: 700;">${user.username}</span>

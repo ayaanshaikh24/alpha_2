@@ -42,6 +42,7 @@ app.get('/api/users', asyncHandler(async (req, res) => {
       id: true,
       username: true,
       bio: true,
+      pfp: true,
       createdAt: true
     }
   });
@@ -60,7 +61,7 @@ app.get('/api/users', asyncHandler(async (req, res) => {
 
 // Create a new user (Registration)
 app.post('/api/users', asyncHandler(async (req, res) => {
-  const { username, bio } = req.body;
+  const { username, bio, pfp } = req.body;
   
   if (!username || typeof username !== 'string' || !username.trim()) {
     return res.status(400).json({ error: 'Username is required and cannot be empty.' });
@@ -73,7 +74,8 @@ app.post('/api/users', asyncHandler(async (req, res) => {
     const user = await prisma.user.create({
       data: {
         username: cleanUsername,
-        bio: cleanBio
+        bio: cleanBio,
+        pfp: pfp || null
       }
     });
     res.status(201).json(user);
@@ -128,6 +130,7 @@ app.get('/api/users/:id', asyncHandler(async (req, res) => {
     id: user.id,
     username: user.username,
     bio: user.bio,
+    pfp: user.pfp,
     createdAt: user.createdAt,
     stats: {
       posts: user._count.posts,
@@ -136,6 +139,45 @@ app.get('/api/users/:id', asyncHandler(async (req, res) => {
     },
     isFollowing
   });
+}));
+
+// Update user profile details (bio, pfp, username)
+app.put('/api/users/:id', asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const activeId = req.userId;
+
+  if (!activeId || activeId !== id) {
+    return res.status(401).json({ error: 'Unauthorized to edit this profile.' });
+  }
+
+  const { username, bio, pfp } = req.body;
+
+  const updateData = {};
+  if (username !== undefined) {
+    if (!username || typeof username !== 'string' || !username.trim()) {
+      return res.status(400).json({ error: 'Username cannot be empty.' });
+    }
+    updateData.username = username.trim();
+  }
+  if (bio !== undefined) {
+    updateData.bio = bio && typeof bio === 'string' ? bio.trim() : null;
+  }
+  if (pfp !== undefined) {
+    updateData.pfp = pfp; // base64 string or null
+  }
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: updateData
+    });
+    res.json(updatedUser);
+  } catch (err) {
+    if (err.code === 'P2002') {
+      return res.status(400).json({ error: 'Username is already taken.' });
+    }
+    throw err;
+  }
 }));
 
 // Follow/Unfollow a user
@@ -204,7 +246,8 @@ app.get('/api/posts', asyncHandler(async (req, res) => {
       user: {
         select: {
           id: true,
-          username: true
+          username: true,
+          pfp: true
         }
       },
       _count: {
@@ -258,7 +301,8 @@ app.post('/api/posts', asyncHandler(async (req, res) => {
       user: {
         select: {
           id: true,
-          username: true
+          username: true,
+          pfp: true
         }
       }
     }
@@ -340,7 +384,8 @@ app.get('/api/posts/:id/comments', asyncHandler(async (req, res) => {
       user: {
         select: {
           id: true,
-          username: true
+          username: true,
+          pfp: true
         }
       }
     }
@@ -424,7 +469,8 @@ app.post('/api/posts/:id/comments', asyncHandler(async (req, res) => {
       user: {
         select: {
           id: true,
-          username: true
+          username: true,
+          pfp: true
         }
       }
     }

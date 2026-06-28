@@ -142,7 +142,11 @@ export async function updateActiveUserUI() {
       const user = await fetchAPI(`/api/users/${activeUserId}`);
       if (user) {
         document.querySelectorAll('.current-user-avatar').forEach(avatar => {
-          avatar.textContent = user.username[0].toUpperCase();
+          if (user.pfp) {
+            avatar.innerHTML = `<img src="${user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+          } else {
+            avatar.textContent = user.username[0].toUpperCase();
+          }
           avatar.classList.add('logged-in');
         });
         
@@ -151,7 +155,16 @@ export async function updateActiveUserUI() {
         if (sidebarProfileCard) {
           sidebarProfileCard.classList.remove('hidden');
           document.getElementById('sidebar-username').textContent = user.username;
-          document.getElementById('sidebar-avatar').textContent = user.username[0].toUpperCase();
+          
+          const sidebarAvatar = document.getElementById('sidebar-avatar');
+          if (sidebarAvatar) {
+            if (user.pfp) {
+              sidebarAvatar.innerHTML = `<img src="${user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+            } else {
+              sidebarAvatar.textContent = user.username[0].toUpperCase();
+            }
+          }
+          
           document.getElementById('sidebar-posts').textContent = user.stats.posts;
           document.getElementById('sidebar-followers').textContent = user.stats.followers;
           document.getElementById('sidebar-following').textContent = user.stats.following;

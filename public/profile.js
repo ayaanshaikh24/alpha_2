@@ -1,189 +1,339 @@
 import { activeUserId, fetchAPI, showToast, formatDate, escapeHTML, updateActiveUserUI } from './navigation.js';
 
-// URL Parameter Parsing
-const params = new URLSearchParams(window.location.search);
-let targetUserId = parseInt(params.get('id'), 10) || null;
+// Profile Page State
+let profileUserId = null;
+let followingSet = new Set();
+let selectedPfpBase64 = null;
+let editSelectedPfpBase64 = null;
 
 // DOM Elements
-const profilePageTitle = document.getElementById('profile-page-title');
+const setupProfilePanel = document.getElementById('setup-profile-panel');
 const targetProfileCard = document.getElementById('target-profile-card');
+const profilePostsFeed = document.getElementById('profile-posts-feed');
+const postsTitle = document.getElementById('posts-title');
+const logoutContainer = document.getElementById('logout-container');
+const logoutBtn = document.getElementById('logout-btn');
+
+// Setup View Mode Elements
 const viewAvatar = document.getElementById('view-avatar');
 const viewUsername = document.getElementById('view-username');
 const viewBio = document.getElementById('view-bio');
-const viewPostsCount = document.getElementById('view-posts');
-const viewFollowersCount = document.getElementById('view-followers');
-const viewFollowingCount = document.getElementById('view-following');
-const profileActionBtnContainer = document.getElementById('profile-action-btn-container');
+const viewPostsSpan = document.getElementById('view-posts');
+const viewFollowersSpan = document.getElementById('view-followers');
+const viewFollowingSpan = document.getElementById('view-following');
+const actionBtnContainer = document.getElementById('profile-action-btn-container');
 
-const sessionsManager = document.getElementById('sessions-manager');
-const userSelector = document.getElementById('user-selector');
-const newUsernameInput = document.getElementById('new-username');
-const newBioInput = document.getElementById('new-bio');
-const registerBtn = document.getElementById('register-btn');
-const postsTitle = document.getElementById('posts-title');
-const profilePostsFeed = document.getElementById('profile-posts-feed');
+// Setup Edit Mode Elements
+const profileViewMode = document.getElementById('profile-view-mode');
+const profileEditMode = document.getElementById('profile-edit-mode');
+const editPfpTrigger = document.getElementById('edit-pfp-trigger');
+const editPfpInput = document.getElementById('edit-pfp-input');
+const editPfpPreview = document.getElementById('edit-pfp-preview');
+const editUsernameInput = document.getElementById('edit-username-input');
+const editBioInput = document.getElementById('edit-bio-input');
+const editCancelBtn = document.getElementById('edit-cancel-btn');
+const editSaveBtn = document.getElementById('edit-save-btn');
 
-const logoutContainer = document.getElementById('logout-container');
-const logoutBtn = document.getElementById('logout-btn');
+// First-Time Setup Elements
+const setupPfpTrigger = document.getElementById('setup-pfp-trigger');
+const setupPfpInput = document.getElementById('setup-pfp-input');
+const setupPfpPreview = document.getElementById('setup-pfp-preview');
+const setupUsernameInput = document.getElementById('setup-username');
+const setupBioTextarea = document.getElementById('setup-bio');
+const setupRegisterBtn = document.getElementById('setup-register-btn');
 
 document.addEventListener('DOMContentLoaded', () => {
   initProfilePage();
 });
 
-// Bridge function for mobile compose modal refresh
+// Expose refresh function to navigation compose modal
 window.refreshPageData = async () => {
-  await loadProfileDetails();
-  await loadUserPosts();
-  await updateActiveUserUI();
+  if (profileUserId) {
+    await loadProfileDetails(profileUserId);
+    await loadUserPosts(profileUserId);
+  }
 };
 
 async function initProfilePage() {
-  // If no target ID in URL, check if active user is logged in
-  if (!targetUserId && activeUserId) {
-    targetUserId = activeUserId;
-  }
-
-  // Setup Event Listeners
-  if (userSelector) {
-    userSelector.addEventListener('change', handleSessionSwitch);
-  }
-  if (registerBtn) {
-    registerBtn.addEventListener('click', handleRegistration);
-  }
+  // Determine which profile to load (from query params)
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryId = parseInt(urlParams.get('id'), 10);
+  
+  // Setup Log Out Action
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', handleLogout);
-  }
-  if (profilePostsFeed) {
-    profilePostsFeed.addEventListener('click', handleFeedClick);
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('pulse_active_user_id');
+      showToast('Logged out of session.', 'info');
+      window.location.href = 'profile.html';
+    });
   }
 
-  await loadSessionsList();
-  await loadProfileDetails();
-  await loadUserPosts();
-}
+  // Bind first-time setup actions
+  initSetupPanel();
 
-async function loadSessionsList() {
-  if (!userSelector) return;
-  
-  try {
-    const response = await fetchAPI('/api/users');
-    if (response) {
-      const users = response.users || [];
-      userSelector.innerHTML = '<option value="">-- Select Profile (Log In) --</option>';
-      users.forEach(u => {
-        const option = document.createElement('option');
-        option.value = u.id;
-        option.textContent = u.username;
-        if (u.id === activeUserId) {
-          option.textContent += ' (Active)';
-        }
-        userSelector.appendChild(option);
-      });
-      userSelector.value = activeUserId || '';
-    }
-  } catch (error) {
-    console.error('Failed to load profiles:', error);
-  }
-}
-
-async function loadProfileDetails() {
-  if (!targetUserId) {
-    // No logged in session and no targeted profile URL parameter
+  // If not logged in and no query ID, show First-Time Setup
+  if (!activeUserId && isNaN(queryId)) {
+    setupProfilePanel.classList.remove('hidden');
     targetProfileCard.classList.add('hidden');
-    sessionsManager.classList.remove('hidden');
+    postsTitle.classList.add('hidden');
     logoutContainer.classList.add('hidden');
-    profilePageTitle.textContent = 'Account Sessions';
     return;
   }
+
+  // Set default profile ID to current session if none is provided in URL
+  profileUserId = isNaN(queryId) ? activeUserId : queryId;
+
+  if (activeUserId) {
+    logoutContainer.classList.remove('hidden');
+  }
+
+  // Load profile page
+  await loadProfileDetails(profileUserId);
+  await loadUserPosts(profileUserId);
+  
+  // Bind Edit Profile Action Events
+  initEditProfileForm();
+}
+
+function initSetupPanel() {
+  if (!setupPfpTrigger || !setupPfpInput) return;
+
+  setupPfpTrigger.addEventListener('click', () => {
+    setupPfpInput.click();
+  });
+
+  setupPfpInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file.', 'error');
+      setupPfpInput.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      selectedPfpBase64 = event.target.result;
+      setupPfpPreview.src = selectedPfpBase64;
+      setupPfpPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  if (setupRegisterBtn) {
+    setupRegisterBtn.addEventListener('click', async () => {
+      const username = setupUsernameInput.value.trim();
+      const bio = setupBioTextarea.value.trim();
+
+      if (!username) {
+        showToast('Username is required.', 'error');
+        return;
+      }
+
+      setupRegisterBtn.disabled = true;
+
+      try {
+        const user = await fetchAPI('/api/users', {
+          method: 'POST',
+          body: JSON.stringify({
+            username,
+            bio: bio || null,
+            pfp: selectedPfpBase64
+          })
+        });
+
+        if (user && user.id) {
+          showToast('Profile created successfully!', 'success');
+          localStorage.setItem('pulse_active_user_id', user.id);
+          window.location.href = 'profile.html';
+        }
+      } catch (err) {
+        showToast(err.message || 'Failed to create profile.', 'error');
+        setupRegisterBtn.disabled = false;
+      }
+    });
+  }
+}
+
+async function loadProfileDetails(userId) {
+  if (!targetProfileCard) return;
 
   try {
-    const profile = await fetchAPI(`/api/users/${targetUserId}`);
-    if (profile) {
-      profilePageTitle.textContent = profile.username === activeUserId ? 'Your Profile' : `${profile.username}'s Profile`;
-      
-      viewUsername.textContent = profile.username;
-      viewBio.textContent = profile.bio || 'No bio yet...';
-      viewAvatar.textContent = profile.username[0].toUpperCase();
-      viewPostsCount.textContent = profile.stats.posts;
-      viewFollowersCount.textContent = profile.stats.followers;
-      viewFollowingCount.textContent = profile.stats.following;
-      
+    const user = await fetchAPI(`/api/users/${userId}`);
+    if (!user) {
+      targetProfileCard.innerHTML = `<div class="empty-state"><p>User not found.</p></div>`;
       targetProfileCard.classList.remove('hidden');
-      
-      // Render Action Buttons (Follow/Unfollow or Switch perspective)
-      renderActionButtons(profile);
-      
-      // If viewing own profile, show sessions manager below it
-      if (targetUserId === activeUserId) {
-        sessionsManager.classList.remove('hidden');
-        logoutContainer.classList.remove('hidden');
-      } else {
-        sessionsManager.classList.add('hidden');
-        logoutContainer.classList.add('hidden');
-      }
+      return;
     }
+
+    // Set page title
+    document.title = `GENZBOOK - ${user.username}'s Profile`;
+    
+    // Set Avatar (render custom PFP if present, else colored letter)
+    if (user.pfp) {
+      viewAvatar.innerHTML = `<img src="${user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+    } else {
+      viewAvatar.textContent = user.username[0].toUpperCase();
+    }
+
+    viewUsername.textContent = user.username;
+    viewBio.textContent = user.bio || 'No bio written yet.';
+    
+    // Stats
+    viewPostsSpan.textContent = user.stats.posts;
+    viewFollowersSpan.textContent = user.stats.followers;
+    viewFollowingSpan.textContent = user.stats.following;
+
+    // Render Action Buttons
+    actionBtnContainer.innerHTML = '';
+    const isOwnProfile = user.id === activeUserId;
+
+    if (isOwnProfile) {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn btn-outline btn-sm';
+      editBtn.textContent = 'Edit Profile';
+      editBtn.addEventListener('click', () => toggleEditMode(user));
+      actionBtnContainer.appendChild(editBtn);
+    } else if (activeUserId) {
+      const followBtn = document.createElement('button');
+      const isFollowing = user.isFollowing;
+      followBtn.className = `btn btn-sm ${isFollowing ? 'btn-outline' : 'btn-primary'}`;
+      followBtn.textContent = isFollowing ? 'Following' : 'Follow';
+      followBtn.addEventListener('click', async () => {
+        try {
+          const response = await fetchAPI(`/api/users/${user.id}/follow`, { method: 'POST' });
+          if (response) {
+            showToast(response.following ? 'Followed user!' : 'Unfollowed user.', 'success');
+            await loadProfileDetails(userId);
+            await updateActiveUserUI();
+          }
+        } catch (e) {
+          showToast('Failed to update follow.', 'error');
+        }
+      });
+      actionBtnContainer.appendChild(followBtn);
+    }
+
+    targetProfileCard.classList.remove('hidden');
   } catch (error) {
-    showToast('Failed to load profile details.', 'error');
-    targetProfileCard.classList.add('hidden');
+    targetProfileCard.innerHTML = `<div class="empty-state"><p>Error loading profile details.</p></div>`;
+    targetProfileCard.classList.remove('hidden');
   }
 }
 
-function renderActionButtons(profile) {
-  if (!profileActionBtnContainer) return;
-  profileActionBtnContainer.innerHTML = '';
+function toggleEditMode(user) {
+  profileViewMode.classList.add('hidden');
+  profileEditMode.classList.remove('hidden');
+
+  editUsernameInput.value = user.username;
+  editBioInput.value = user.bio || '';
   
-  if (!activeUserId) {
-    // Not logged in -> Show switch perspective button
-    profileActionBtnContainer.innerHTML = `
-      <button class="btn btn-outline btn-sm switch-view-btn" data-user-id="${profile.id}">
-        Login as ${profile.username}
-      </button>
-    `;
-    return;
+  if (user.pfp) {
+    editPfpPreview.src = user.pfp;
+    editPfpPreview.style.display = 'block';
+    editSelectedPfpBase64 = user.pfp;
+  } else {
+    editPfpPreview.src = '';
+    editPfpPreview.style.display = 'none';
+    editSelectedPfpBase64 = null;
   }
-
-  if (profile.id === activeUserId) {
-    // Viewing own profile
-    profileActionBtnContainer.innerHTML = `<span class="active-badge" style="padding: 6px 12px; font-size: 0.75rem;">Active Session</span>`;
-    return;
-  }
-
-  // Viewing someone else's profile while logged in -> Show Follow & Perspective buttons
-  profileActionBtnContainer.innerHTML = `
-    <div style="display: flex; gap: 8px;">
-      <button class="btn btn-sm follow-btn ${profile.isFollowing ? 'btn-outline' : 'btn-primary'}" data-user-id="${profile.id}">
-        ${profile.isFollowing ? 'Following' : 'Follow'}
-      </button>
-      <button class="btn btn-outline btn-sm switch-view-btn" data-user-id="${profile.id}">
-        Switch View
-      </button>
-    </div>
-  `;
 }
 
-async function loadUserPosts() {
+function initEditProfileForm() {
+  if (!editPfpTrigger || !editPfpInput) return;
+
+  // Single binding to prevent duplicate listeners
+  if (!editPfpTrigger.dataset.bound) {
+    editPfpTrigger.addEventListener('click', () => {
+      editPfpInput.click();
+    });
+
+    editPfpInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file.', 'error');
+        editPfpInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        editSelectedPfpBase64 = event.target.result;
+        editPfpPreview.src = editSelectedPfpBase64;
+        editPfpPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    editCancelBtn.addEventListener('click', () => {
+      profileEditMode.classList.add('hidden');
+      profileViewMode.classList.remove('hidden');
+    });
+
+    editSaveBtn.addEventListener('click', async () => {
+      const username = editUsernameInput.value.trim();
+      const bio = editBioInput.value.trim();
+
+      if (!username) {
+        showToast('Username cannot be empty.', 'error');
+        return;
+      }
+
+      editSaveBtn.disabled = true;
+
+      try {
+        const user = await fetchAPI(`/api/users/${activeUserId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            username,
+            bio: bio || null,
+            pfp: editSelectedPfpBase64
+          })
+        });
+
+        if (user) {
+          showToast('Profile updated successfully!', 'success');
+          profileEditMode.classList.add('hidden');
+          profileViewMode.classList.remove('hidden');
+          
+          await loadProfileDetails(activeUserId);
+          await updateActiveUserUI();
+          await loadUserPosts(activeUserId);
+        }
+      } catch (err) {
+        showToast(err.message || 'Failed to update profile.', 'error');
+      } finally {
+        editSaveBtn.disabled = false;
+      }
+    });
+
+    editPfpTrigger.dataset.bound = "true";
+  }
+}
+
+async function loadUserPosts(userId) {
   if (!profilePostsFeed) return;
 
-  if (!targetUserId) {
-    profilePostsFeed.innerHTML = `
-      <div class="empty-state">
-        <p>Please log in or select a profile to view posts.</p>
-      </div>
-    `;
-    if (postsTitle) postsTitle.classList.add('hidden');
-    return;
-  }
-
-  profilePostsFeed.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
+  profilePostsFeed.innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading posts...</p>
+    </div>
+  `;
 
   try {
     const posts = await fetchAPI('/api/posts');
-    const userPosts = posts.filter(post => post.user.id === targetUserId);
-    
-    if (postsTitle) postsTitle.classList.remove('hidden');
-    profilePostsFeed.innerHTML = '';
+    if (!posts) return;
 
+    // Filter to only user's posts
+    const userPosts = posts.filter(post => post.user.id === userId);
+    profilePostsFeed.innerHTML = '';
+    
     if (userPosts.length === 0) {
+      postsTitle.classList.add('hidden');
       profilePostsFeed.innerHTML = `
         <div class="empty-state">
           <p>No posts published by this user yet.</p>
@@ -192,6 +342,7 @@ async function loadUserPosts() {
       return;
     }
 
+    postsTitle.classList.remove('hidden');
     userPosts.forEach(post => {
       profilePostsFeed.appendChild(createProfilePostCard(post));
     });
@@ -209,7 +360,9 @@ function createProfilePostCard(post) {
   card.innerHTML = `
     <div class="post-header">
       <div class="post-user-info" data-user-id="${post.user.id}">
-        <div class="avatar">${post.user.username[0].toUpperCase()}</div>
+        <div class="avatar" style="overflow: hidden;">
+          ${post.user.pfp ? `<img src="${post.user.pfp}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">` : post.user.username[0].toUpperCase()}
+        </div>
         <div>
           <span class="post-username">${post.user.username}</span>
           <span class="post-time">${formatDate(post.createdAt)}</span>
@@ -237,150 +390,4 @@ function createProfilePostCard(post) {
     </div>
   `;
   return card;
-}
-
-// ==========================================
-// SESSION & SWITCHING HANDLERS
-// ==========================================
-
-async function handleSessionSwitch(e) {
-  const userId = e.target.value;
-  if (userId) {
-    localStorage.setItem('pulse_active_user_id', userId);
-    showToast('Session updated successfully!', 'success');
-    window.location.href = 'index.html';
-  } else {
-    handleLogout();
-  }
-}
-
-async function handleRegistration() {
-  const username = newUsernameInput.value.trim();
-  const bio = newBioInput.value.trim();
-
-  if (!username) {
-    showToast('Username is required.', 'error');
-    return;
-  }
-
-  try {
-    const user = await fetchAPI('/api/users', {
-      method: 'POST',
-      body: JSON.stringify({ username, bio })
-    });
-    if (user) {
-      showToast(`Logged in as "${user.username}"!`, 'success');
-      localStorage.setItem('pulse_active_user_id', user.id);
-      window.location.href = 'index.html';
-    }
-  } catch (error) {
-    showToast(error.message || 'Registration failed.', 'error');
-  }
-}
-
-function handleLogout() {
-  localStorage.removeItem('pulse_active_user_id');
-  showToast('Logged out of session.', 'info');
-  window.location.href = 'profile.html';
-}
-
-// ==========================================
-// INTERACTIVE ACTIONS ON USER POSTS
-// ==========================================
-
-async function handleFeedClick(e) {
-  const target = e.target;
-
-  // 1. Perspective Switch Button on profile header
-  if (target.classList.contains('switch-view-btn')) {
-    const userId = parseInt(target.getAttribute('data-user-id'), 10);
-    if (userId) {
-      localStorage.setItem('pulse_active_user_id', userId);
-      showToast('Switched session view!', 'success');
-      window.location.href = 'index.html';
-    }
-    return;
-  }
-
-  // 2. Follow / Unfollow Button on profile header
-  if (target.classList.contains('follow-btn')) {
-    const targetUserId = parseInt(target.getAttribute('data-user-id'), 10);
-    await toggleFollow(targetUserId, target);
-    return;
-  }
-
-  // 3. Like / Unlike Post on profile feed list
-  const likeBtn = target.closest('.like-btn');
-  if (likeBtn) {
-    const postId = parseInt(likeBtn.getAttribute('data-post-id'), 10);
-    await toggleLike(postId, likeBtn);
-    return;
-  }
-  
-  // 4. Click Username in feed post -> Redirect to their profile
-  const userInfo = target.closest('.post-user-info');
-  if (userInfo) {
-    const userId = parseInt(userInfo.getAttribute('data-user-id'), 10);
-    if (userId && userId !== targetUserId) {
-      window.location.href = `profile.html?id=${userId}`;
-    }
-  }
-}
-
-async function toggleFollow(targetUserId, button) {
-  if (!activeUserId) {
-    showToast('Please login or switch to a profile to follow users.', 'error');
-    return;
-  }
-
-  button.disabled = true;
-
-  try {
-    const response = await fetchAPI(`/api/users/${targetUserId}/follow`, { method: 'POST' });
-    if (response) {
-      if (response.following) {
-        button.className = 'btn btn-sm btn-outline follow-btn';
-        button.textContent = 'Following';
-        showToast('User followed.', 'success');
-      } else {
-        button.className = 'btn btn-sm btn-primary follow-btn';
-        button.textContent = 'Follow';
-        showToast('User unfollowed.', 'info');
-      }
-      // Reload stats and active UI
-      await loadProfileDetails();
-      await updateActiveUserUI();
-    }
-  } catch (error) {
-    showToast(error.message || 'Failed to update follow.', 'error');
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function toggleLike(postId, btn) {
-  if (!activeUserId) {
-    showToast('Please login or switch to a profile to like posts.', 'error');
-    return;
-  }
-
-  try {
-    const response = await fetchAPI(`/api/posts/${postId}/like`, { method: 'POST' });
-    if (response) {
-      const likeCountSpan = btn.querySelector('.like-count');
-      let currentCount = parseInt(likeCountSpan.textContent, 10);
-      
-      if (response.liked) {
-        btn.classList.add('liked');
-        likeCountSpan.textContent = currentCount + 1;
-        showToast('Liked post.', 'success');
-      } else {
-        btn.classList.remove('liked');
-        likeCountSpan.textContent = currentCount - 1;
-        showToast('Unliked post.', 'info');
-      }
-    }
-  } catch (error) {
-    showToast('Failed to update like.', 'error');
-  }
 }
